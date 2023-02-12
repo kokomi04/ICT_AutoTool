@@ -27,6 +27,7 @@ namespace TR_8001
 
                     string[] items1 = lines[1].Split(',');
 
+
                     string[] items2 = lines[2].Split(',');
 
                     int i = 0;
