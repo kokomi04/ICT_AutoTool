@@ -32,6 +32,7 @@ namespace TR_8001
                     int i = 0;
                     for (i = 0; i <= items1.Count() - 1; i++)
                     {
+
                         if (items1[i].Contains("BoardName"))
                         {
                             newline = "BoardName ," + items2[i] + "\r\n";
@@ -47,8 +48,6 @@ namespace TR_8001
 
                     newline += "Time , " + DateTime.Now.ToString("hh:mm:ss") + "," + DateTime.Now.ToString("dd/MM/yyyy") + "\r\n\r\n";
 
-                    newline += lines[5];
-
                     string[] items5 = lines[5].Split(',');
                     try
                     {
@@ -58,7 +57,18 @@ namespace TR_8001
                             {
                                 for (int j = 6; j < lines.Count() - 1; j++)
                                 {
-                                    if (Convert.ToInt32(lines[j].Split(',')[i]) == 1)
+                                    if (lines[j] != null && lines[j].Contains(","))
+                                    {
+                                        if (Convert.ToInt32(lines[j].Split(',')[i]) == 1)
+                                        {
+                                            if (!newline.Contains("PartName"))
+                                            {
+                                                newline += lines[5];
+                                            }
+                                            newline += lines[j];
+                                        }
+                                    }
+                                    if (lines[j].Contains("<"))
                                     {
                                         newline += lines[j];
                                     }
