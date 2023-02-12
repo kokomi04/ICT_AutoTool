@@ -72,6 +72,7 @@ namespace TR_8001
             this.label5 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.waitingResponse = new System.Windows.Forms.Timer(this.components);
+            this.writeFailLog = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -560,6 +561,10 @@ namespace TR_8001
             // 
             this.waitingResponse.Tick += new System.EventHandler(this.waitingResponse_Tick);
             // 
+            // writeFailLog
+            // 
+            this.writeFailLog.Tick += new System.EventHandler(this.writeFailLog_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -637,6 +642,7 @@ namespace TR_8001
         private System.Windows.Forms.Button btXoa;
         private System.Windows.Forms.Label lbwarning;
         private System.Windows.Forms.Timer waitingResponse;
+        private System.Windows.Forms.Timer writeFailLog;
     }
 }
 

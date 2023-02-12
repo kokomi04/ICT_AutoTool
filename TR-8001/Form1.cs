@@ -27,13 +27,13 @@ namespace TR_8001
         string LogPath = "";
         string failPath = "";
 
-        bool isDone = false;
-
         SerialPort P = new SerialPort();
         string InputData = String.Empty;
         delegate void SetTextCallback(string text);
         bool connect = false;
+        private bool isDone = false;
         private bool received;
+        private bool isFail;
 
         public Form1()
         {
@@ -41,6 +41,7 @@ namespace TR_8001
             this.StartPosition = FormStartPosition.Manual;
             ////////LogPath
             timer1.Enabled = true;
+            writeFailLog.Enabled = true;
             INIFile inif = new INIFile(Directory.GetCurrentDirectory() + "\\config.ini");
             if (!File.Exists(Directory.GetCurrentDirectory() + "\\config.ini"))
             {
@@ -154,7 +155,7 @@ namespace TR_8001
             // Add event handlers.
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
-            watcher.Deleted += new FileSystemEventHandler(OnChanged);
+           // watcher.Deleted += new FileSystemEventHandler(OnChanged);
 
             // Begin watching.
             watcher.EnableRaisingEvents = true;
@@ -320,6 +321,40 @@ namespace TR_8001
             {
                 isDone = false;
 
+                // this.Hide();
+                this.Show();
+                await Task.Delay(3000);
+                // AutoControl.SendMultiKeysFocus(new KeyCode[] { KeyCode.ALT, KeyCode.TAB });
+                this.BringToFront();
+                this.Focus();
+                this.Activate();
+
+                await Task.Delay(1000);
+                this.BringToFront();
+                this.Focus();
+                this.Activate();
+
+                await Task.Delay(1000);
+                this.BringToFront();
+                this.Focus();
+                this.Activate();
+            }
+
+        }
+        private void OnChanged(object source, FileSystemEventArgs e)
+        {
+            isDone = true;
+            if (e.Name.Contains("FAIL"))
+            {
+                isFail = true;
+                failPath = e.FullPath;
+            }
+        }
+        private void writeFailLog_Tick(object sender, EventArgs e)
+        {
+            if (isFail)
+            {
+                isFail = false;
                 //Func<bool> writeLog = () =>
                 //                   {
                 //                       WriteFailLog write = new WriteFailLog();
@@ -346,35 +381,10 @@ namespace TR_8001
                 {
                     MsgBox.ShowException("Create fail log error", "ERROR", "OK", "Cancel");
                 }
-
-                // this.Hide();
-                this.Show();
-                await Task.Delay(3000);
-                // AutoControl.SendMultiKeysFocus(new KeyCode[] { KeyCode.ALT, KeyCode.TAB });
-                this.BringToFront();
-                this.Focus();
-                this.Activate();
-
-                await Task.Delay(1000);
-                this.BringToFront();
-                this.Focus();
-                this.Activate();
-
-                await Task.Delay(1000);
-                this.BringToFront();
-                this.Focus();
-                this.Activate();
             }
+            
+        }
 
-        }
-        private void OnChanged(object source, FileSystemEventArgs e)
-        {
-            isDone = true;
-            if (e.Name.Contains("FAIL"))
-            {
-                failPath = e.FullPath;
-            }
-        }
         private async void waitingResponse_Tick(object sender, EventArgs e)
         {
             counter--;
@@ -555,8 +565,8 @@ namespace TR_8001
             txtkq.SelectionStart = txtkq.Text.Length;
             txtkq.ScrollToCaret();
         }
-        #endregion
 
+        #endregion
 
     }
 
