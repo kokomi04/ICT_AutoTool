@@ -3,87 +3,97 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace TR_8001
 {
     public class WriteFailLog
     {
-
-
-        public void Read(string filePath, string failLogPath)
+        public bool Read(string filePath, string failLogPath)
         {
-            List<String> newlines = new List<String>();
 
             if (File.Exists(filePath))
             {
-                StreamReader reader = new StreamReader(filePath);
-                String line = null;
-                String newline = null;
-
-                string nameFile = null;
-
-                line = reader.ReadToEnd();
-
-                String[] lines = line.Split('\n');
-
-                string[] items1 = lines[1].Split(',');
-
-                string[] items2 = lines[2].Split(',');
-
-                int i = 0;
-                int j = 6;
-                for (i = 0; i < 8; i++)
+                using (StreamReader reader = new StreamReader(filePath))
                 {
-                    if (items1[i].Contains("BoardName"))
-                    {
-                        newline = "BoardName ," + items2[i] + "\r\n";
-                    }
+                    String line = null;
+                    String newline = null;
 
-                    if (items1[i].Contains("BarCode"))
-                    {
-                        newline = newline + "BarCode , " + items2[i] + "\r\n";
-                        nameFile = items2[i];
-                    }
-                }
-                newline = newline + "Result , FAIL\r\n\r\n";
+                    string nameFile = null;
 
-                newline = newline + lines[5];
+                    line = reader.ReadToEnd();
 
-                string[] items5 = lines[5].Split(',');
-                for (i = 0; i < lines[5].Split(',').Count()-1; i++)
-                {
-                    if (items5[i].Contains("Result"))
+                    String[] lines = line.Split('\n');
+
+                    string[] items1 = lines[1].Split(',');
+
+                    string[] items2 = lines[2].Split(',');
+
+                    int i = 0;
+                    for (i = 0; i <= items1.Count() - 1; i++)
                     {
-                        for (j = 6; j < lines.Count()-1; j++)
+                        if (items1[i].Contains("BoardName"))
                         {
-                            if (Convert.ToInt32(lines[j].Split(',')[i]) == 1)
+                            newline = "BoardName ," + items2[i] + "\r\n";
+                        }
+
+                        if (items1[i].Contains("BarCode"))
+                        {
+                            newline += "BarCode , " + items2[i] + "\r\n";
+                            nameFile = items2[i];
+                        }
+                    }
+                    newline += "Result , FAIL\r\n";
+
+                    newline += "Time , " + DateTime.Now.ToString("hh:mm:ss") + "," + DateTime.Now.ToString("dd/MM/yyyy") + "\r\n\r\n";
+
+                    newline += lines[5];
+
+                    string[] items5 = lines[5].Split(',');
+                    try
+                    {
+                        for (i = 0; i <= items5.Count() - 1; i++)
+                        {
+                            if (items5[i].Contains("Result"))
                             {
-                                newline += lines[j] + "";
+                                for (int j = 6; j < lines.Count() - 1; j++)
+                                {
+                                    if (Convert.ToInt32(lines[j].Split(',')[i]) == 1)
+                                    {
+                                        newline += lines[j];
+                                    }
+                                }
                             }
                         }
                     }
-                }
-
-                string newfilePath = failLogPath + "\\" + nameFile + ".csv";
-
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(newfilePath, true))
+                    catch (Exception ex)
                     {
-                        writer.WriteLine(newline);
-                        writer.Close();
+                        MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                        return false;
                     }
-                }
 
-                catch (Exception ex)
-                {
-                    MsgBox.ShowException(ex.Message, "Error", "OK", "Cancel");
-                    
-                }
 
+                    string newfilePath = failLogPath + "\\" + nameFile + ".csv";
+
+                    try
+                    {
+                        using (StreamWriter writer = new StreamWriter(newfilePath, true))
+                        {
+                            writer.WriteLine(newline);
+                            writer.Close();
+                            return true;
+                        }
+                    }
+
+                    catch (Exception ex)
+                    {
+                        MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                        return false;
+                    }
+
+                }
             }
+            return false;
         }
     }
 }
