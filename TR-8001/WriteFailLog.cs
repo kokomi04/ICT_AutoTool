@@ -84,13 +84,11 @@ namespace TR_8001
                             return true;
                         }
                     }
-
                     catch (Exception ex)
                     {
                         MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
                         return false;
                     }
-
                 }
             }
             return false;

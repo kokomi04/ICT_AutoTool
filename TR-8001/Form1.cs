@@ -186,7 +186,7 @@ namespace TR_8001
         private void button2_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog f1 = new FolderBrowserDialog();
-            f1.SelectedPath = "E:\\";
+            //f1.SelectedPath = "E:\\";
             //string ResultWrite = null;
             //f1.ShowNewFolderButton = true;
             if (f1.ShowDialog() == DialogResult.OK)
@@ -215,10 +215,7 @@ namespace TR_8001
                     text = textBox1.Text.ToUpper().Trim();
                     Folder.Refresh();
                     dsfile = Folder.GetFiles();
-                    //dsfile.Where(f => f.CreationTime.)
 
-                    //foreach (var item in dsfile)
-                    //{
                     if (!text.Contains("FV"))
                     {
                         textBox1.Text = "";
