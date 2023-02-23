@@ -74,7 +74,11 @@ namespace TR_8001
             this.label5 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.waitingResponse = new System.Windows.Forms.Timer(this.components);
+
             this.waitCam = new System.Windows.Forms.Timer(this.components);
+
+            this.writeFailLog = new System.Windows.Forms.Timer(this.components);
+
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -591,10 +595,16 @@ namespace TR_8001
             // 
             this.waitingResponse.Tick += new System.EventHandler(this.waitingResponse_Tick);
             // 
+
             // waitCam
             // 
             this.waitCam.Interval = 7000;
             this.waitCam.Tick += new System.EventHandler(this.waitCam_Tick);
+
+            // writeFailLog
+            // 
+            this.writeFailLog.Tick += new System.EventHandler(this.writeFailLog_Tick);
+
             // 
             // Form1
             // 
@@ -673,9 +683,13 @@ namespace TR_8001
         private System.Windows.Forms.Button btXoa;
         private System.Windows.Forms.Label lbwarning;
         private System.Windows.Forms.Timer waitingResponse;
+
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Button btnUseCam;
         private System.Windows.Forms.Timer waitCam;
+
+        private System.Windows.Forms.Timer writeFailLog;
+
     }
 }
 

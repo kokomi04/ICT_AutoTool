@@ -21,23 +21,33 @@ namespace TR_8001
     {
         DirectoryInfo Folder;
         FileInfo[] dsfile;
+
         Process pros;
 
         string barcode;
+
+        string text;
+
         int counter;
         int counter1 = 0;
         int BarcodeLength = 11;
         string LogPath = "";
+
         string filePath = "";
         private bool isFail;
         string pathcurrentNow = Directory.GetCurrentDirectory();
+
+        string failPath = "";
+
 
         SerialPort P = new SerialPort();
         string InputData = String.Empty;
         delegate void SetTextCallback(string text);
         bool isDone = false;
         bool connect = false;
+        private bool isDone = false;
         private bool received;
+        private bool isFail;
 
         public Form1()
         {
@@ -46,6 +56,7 @@ namespace TR_8001
             this.StartPosition = FormStartPosition.Manual;
             ////////LogPath
             timer1.Enabled = true;
+            writeFailLog.Enabled = true;
             INIFile inif = new INIFile(Directory.GetCurrentDirectory() + "\\config.ini");
             if (!File.Exists(Directory.GetCurrentDirectory() + "\\config.ini"))
             {
@@ -66,7 +77,7 @@ namespace TR_8001
             }
             else
             {
-                MessageBox.Show("Log Path error!");
+                MsgBox.ShowException("Log Path error!", "ERROR", "OK", "Cancel");
                 panel1.BackColor = Color.Brown;
                 textBox1.Visible = label1.Visible = label4.Visible = false;
                 lbwarning.Visible = true;
@@ -95,7 +106,7 @@ namespace TR_8001
             cbCom.SelectedItem = inif.Read("CONFIG", "COM").ToUpper();
             if (cbCom.SelectedItem == null)
             {
-                MessageBox.Show("Can't connect COM Port.", "Retry", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MsgBox.ShowException("Can't connect COM Port", "ERROR", "OK", "Cancel");
                 panel1.BackColor = Color.Brown;
                 textBox1.Visible = label1.Visible = label4.Visible = false;
                 lbwarning.Visible = true;
@@ -106,26 +117,8 @@ namespace TR_8001
             cbBits.SelectedIndex = 2; // 8
             cbParity.SelectedIndex = 0; // None
             cbBit.SelectedIndex = 0; // None
-
-            // Create a new FileSystemWatcher and set its properties.
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            watcher.Path = LogPath;
-            /* Watch for changes in LastAccess and LastWrite times, and
-               the renaming of files or directories. */
-            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
-               | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            // Only watch text files.
-            watcher.Filter = "*.csv";
-
-            // Add event handlers.
-            watcher.Changed += new FileSystemEventHandler(OnChanged);
-            watcher.Created += new FileSystemEventHandler(OnChanged);
-            watcher.Deleted += new FileSystemEventHandler(OnChanged);
-
-            // Begin watching.
-            watcher.EnableRaisingEvents = true;
+            Load_EventChangeFile();
         }
-
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -151,7 +144,8 @@ namespace TR_8001
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Can't connect COM Port.", "Retry", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    MsgBox.ShowException("Can't connect COM Port", "ERROR", "OK", "Cancel");
                     panel1.BackColor = Color.Brown;
                     textBox1.Visible = label1.Visible = label4.Visible = false;
                     lbwarning.Visible = true;
@@ -160,6 +154,26 @@ namespace TR_8001
             }
             // status.Text = "Choose COM Port!";
             //status.ForeColor = Color.DarkCyan;
+        }
+        private void Load_EventChangeFile()
+        {
+            // Create a new FileSystemWatcher and set its properties.
+            FileSystemWatcher watcher = new FileSystemWatcher();
+            watcher.Path = LogPath;
+            /* Watch for changes in LastAccess and LastWrite times, and
+               the renaming of files or directories. */
+            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
+               | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            // Only watch text files.
+            watcher.Filter = "*.csv";
+
+            // Add event handlers.
+            watcher.Changed += new FileSystemEventHandler(OnChanged);
+            watcher.Created += new FileSystemEventHandler(OnChanged);
+           // watcher.Deleted += new FileSystemEventHandler(OnChanged);
+
+            // Begin watching.
+            watcher.EnableRaisingEvents = true;
         }
 
         #region AutoTest
@@ -187,7 +201,6 @@ namespace TR_8001
         }
         private void button2_Click(object sender, EventArgs e)
         {
-
             FolderBrowserDialog f1 = new FolderBrowserDialog();
             //f1.SelectedPath = "E:\\";
             //string ResultWrite = null;
@@ -206,6 +219,7 @@ namespace TR_8001
             panel1.BackColor = Color.DarkSeaGreen;
             textBox1.Visible = label1.Visible = label4.Visible = true;
             lbwarning.Visible = false;
+            Load_EventChangeFile();
         }
 
         private void textBox1_KeyDown(object sender, KeyEventArgs e)
@@ -214,8 +228,39 @@ namespace TR_8001
             {
                 if (textBox1.Text.Length == BarcodeLength)
                 {
+
                     barcode = textBox1.Text.ToUpper().Trim();
                     checkSN();
+
+                    text = textBox1.Text.ToUpper().Trim();
+                    Folder.Refresh();
+                    dsfile = Folder.GetFiles();
+
+                    if (!text.Contains("FV"))
+                    {
+                        textBox1.Text = "";
+                        MsgBox.ShowWrong("sxcs", "sdcfd", "OK", "Cancel");
+                        return;
+                    }
+                    else if (dsfile.Where(p => p.Name.Contains(text)).FirstOrDefault() != null)
+                    {
+                        if (MsgBox.ShowRetest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
+                        {
+                            handle("RETEST");
+                        }
+                        else return;
+                    }
+                    else
+                    {
+                        if (MsgBox.ShowTest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
+                        {
+                            handle("TEST");
+                        }
+                        else return;
+                    }
+                    //}
+
+
                 }
             }
         }
@@ -231,7 +276,7 @@ namespace TR_8001
 
             if (handle == IntPtr.Zero)
             {
-                MessageBox.Show("Hãy bật phần mềm TR-8001");
+                MsgBox.ShowException("Hãy bật phần mềm TR-8001", "Chú ý", "OK", "Cancel");
                 return;
             }
             AutoControl.BringToFront(handle);
@@ -253,7 +298,7 @@ namespace TR_8001
             }
             else
             {
-                MessageBox.Show("Check COM");
+                MsgBox.ShowException("Check COM", "ERROR", "OK", "Cancel");
             }
         }
 
@@ -299,15 +344,22 @@ namespace TR_8001
                 label4.Visible = false;
                 btnUseCam.Visible = true;
                 btnUseCam.Text = "ENTER";
+
                 this.AcceptButton = btnUseCam;
             }
             else
+
+            }
+            else 
+
             {
                 textBox1.Visible = true;
                 label1.Visible = true;
                 label4.Visible = true;
                 btnUseCam.Visible = false;
+
                 this.AcceptButton = null;
+
             }
         }
         private void btnUseCam_Click(object sender, EventArgs e)
@@ -315,7 +367,11 @@ namespace TR_8001
             checkCam();
         }
 
+
         public void checkSN()
+
+        private void checkSN()
+
         {
             Folder.Refresh();
             dsfile = Folder.GetFiles();
@@ -350,6 +406,7 @@ namespace TR_8001
             {
                 isDone = false;
 
+
                 if(isFail == true)
                 {
                     isFail = false;
@@ -370,10 +427,21 @@ namespace TR_8001
                 this.Focus();
                 this.Activate();
 
+
                 //await Task.Delay(1000);
                 //this.BringToFront();
                 //this.Focus();
                 //this.Activate();
+
+                await Task.Delay(1000);
+                this.BringToFront();
+                this.Focus();
+                this.Activate();
+
+                await Task.Delay(1000);
+                this.BringToFront();
+                this.Focus();
+                this.Activate();
             }
 
         }
@@ -382,10 +450,50 @@ namespace TR_8001
             isDone = true;
             if (e.Name.Contains("FAIL"))
             {
+
                 filePath = e.FullPath;
                 isFail = true;
             }
+
+                isFail = true;
+                failPath = e.FullPath;
+            }
         }
+        private void writeFailLog_Tick(object sender, EventArgs e)
+        {
+            if (isFail)
+            {
+                isFail = false;
+                //Func<bool> writeLog = () =>
+                //                   {
+                //                       WriteFailLog write = new WriteFailLog();
+
+                //                       if (!Directory.Exists(LogPath + "\\FAILLOG"))
+                //                       {
+                //                           Directory.CreateDirectory(LogPath + "\\FAILLOG");
+                //                       }
+                //                       return write.Read(failPath, LogPath + "\\FAILLOG");
+                //                   };
+                Task<bool> task = new Task<bool>(() =>
+                {
+                    WriteFailLog write = new WriteFailLog();
+
+                    if (!Directory.Exists(LogPath + "\\FAILLOG"))
+                    {
+                        Directory.CreateDirectory(LogPath + "\\FAILLOG");
+                    }
+                    return write.Read(failPath, LogPath + "\\FAILLOG");
+                });
+                task.Start();
+
+                if (task.Result == false)
+                {
+                    MsgBox.ShowException("Create fail log error", "ERROR", "OK", "Cancel");
+                }
+            }
+            
+        }
+
         private async void waitingResponse_Tick(object sender, EventArgs e)
         {
             counter--;
@@ -404,7 +512,11 @@ namespace TR_8001
                 this.BringToFront();
                 this.Focus();
                 this.Activate();
+
                 MessageBox.Show("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", MessageBoxButtons.OK);
+
+                MsgBox.ShowException("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", "OK", "Cancel");
+
             }
         }
         public bool checkCam()
@@ -414,12 +526,33 @@ namespace TR_8001
             try
             {
                 pros = Process.Start(pathcurrentNow + "\\Scan_Barcode.exe");
+
             }
             catch (Exception ex)
             {
                 MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
                 return false;
             }
+            catch (Exception ex)
+            {
+                MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                return false;
+            }
+            
+            counter1 = 100;
+            waitCam.Start();
+            return true;
+        }
+        private void waitCam_Tick(object sender, EventArgs e)
+        {
+            counter1--;
+            if (File.Exists(pathcurrentNow + "\\Barcode.txt"))
+            {
+                pros.Kill();
+                waitCam.Stop();
+                StreamReader str = new StreamReader(pathcurrentNow + "\\Barcode.txt");
+                barcode = str.ReadLine();
+
 
             counter1 = 100;
             waitCam.Start();
@@ -442,16 +575,20 @@ namespace TR_8001
                 if (counter == 0)
                 {
                     pros.Kill();
+
                     waitCam.Stop();
                     MsgBox.ShowException("Kiểm tra kết nối Camera!", "ERROR CAM", "OK", "Cancel");
+
+                    MsgBox.ShowException("Kiểm tra kết nối Camera!", "ERROR CAM", "OK", "Cancel");
+                    waitCam.Stop();
                 }
             }
         }
-        #endregion
+            #endregion
 
 
-        #region Config
-        private void cbCom_SelectedIndexChanged(object sender, EventArgs e)
+            #region Config
+            private void cbCom_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (P.IsOpen)
             {
@@ -575,7 +712,7 @@ namespace TR_8001
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Can't connect.", "Retry", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MsgBox.ShowException("Can't connect.", "ERROR", "OK", "Cancel");
                 }
             }
             else
