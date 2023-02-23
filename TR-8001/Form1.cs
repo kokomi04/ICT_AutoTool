@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
@@ -20,26 +21,28 @@ namespace TR_8001
     {
         DirectoryInfo Folder;
         FileInfo[] dsfile;
-        string text;
-        string ResultWrite;
-            
+        Process pros;
+
+        string barcode;
         int counter;
+        int counter1 = 0;
         int BarcodeLength = 11;
         string LogPath = "";
         string filePath = "";
-        List<string> ResultWriteData = new List<string>();
-
-        bool isDone = false;
+        private bool isFail;
+        string pathcurrentNow = Directory.GetCurrentDirectory();
 
         SerialPort P = new SerialPort();
         string InputData = String.Empty;
         delegate void SetTextCallback(string text);
+        bool isDone = false;
         bool connect = false;
         private bool received;
 
         public Form1()
         {
             InitializeComponent();
+            //checkBox1.Checked = true;
             this.StartPosition = FormStartPosition.Manual;
             ////////LogPath
             timer1.Enabled = true;
@@ -129,7 +132,7 @@ namespace TR_8001
             textBox2.Text = LogPath;
             textBox1.Focus();
             //this.Activate();
-            
+
             if (!connect)
             {
                 try
@@ -211,46 +214,16 @@ namespace TR_8001
             {
                 if (textBox1.Text.Length == BarcodeLength)
                 {
-                    text = textBox1.Text.ToUpper().Trim();
-                    Folder.Refresh();
-                    dsfile = Folder.GetFiles();
-                    //dsfile.Where(f => f.CreationTime.)
-
-                    //foreach (var item in dsfile)
-                    //{
-                        if (!text.Contains("FV"))
-                        {
-                            textBox1.Text = "";
-                            MsgBox.ShowWrong("sxcs", "sdcfd", "OK", "Cancel");
-                            return;
-                        }
-                        else if (dsfile.Where(p => p.Name.Contains(text)).FirstOrDefault() != null)
-                        {
-                            if (MsgBox.ShowRetest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
-                            {
-                                handle("RETEST");
-                            }
-                            else return;
-                        }
-                        else 
-                        {
-                            if (MsgBox.ShowTest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
-                            {
-                                handle("TEST");
-                            }
-                            else return;
-                        }
-                    //}
-                    
+                    barcode = textBox1.Text.ToUpper().Trim();
+                    checkSN();
                 }
-
             }
         }
 
         public async void handle(string status)
         {
-           // isDone = false;
-           // this.Hide();
+            // isDone = false;
+            // this.Hide();
             //IntPtr parentHandle = AutoControl.FindWindowHandle(null, null);
 
 
@@ -264,7 +237,7 @@ namespace TR_8001
             AutoControl.BringToFront(handle);
             await Task.Delay(50);
             AutoControl.SendClickOnPosition(handle, 300, 120, EMouseKey.DOUBLE_LEFT);
-            SendKeys.SendWait(text);
+            SendKeys.SendWait(barcode);
             //AutoControl.SendKeyPress(KeyCode.F6);
             await Task.Delay(2000);
             //  AutoControl.SendKeyPress(KeyCode.F5);
@@ -316,18 +289,78 @@ namespace TR_8001
             INIFile inif = new INIFile(Directory.GetCurrentDirectory() + "\\config.ini");
             inif.Write("CONFIG", "BarcodeLength", BarcodeLength.ToString());
         }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                textBox1.Visible = false;
+                label1.Visible = false;
+                label4.Visible = false;
+                btnUseCam.Visible = true;
+                btnUseCam.Text = "ENTER";
+                this.AcceptButton = btnUseCam;
+            }
+            else
+            {
+                textBox1.Visible = true;
+                label1.Visible = true;
+                label4.Visible = true;
+                btnUseCam.Visible = false;
+                this.AcceptButton = null;
+            }
+        }
+        private void btnUseCam_Click(object sender, EventArgs e)
+        {
+            checkCam();
+        }
+
+        public void checkSN()
+        {
+            Folder.Refresh();
+            dsfile = Folder.GetFiles();
+
+            if (!barcode.Contains("FV"))
+            {
+                textBox1.Text = "";
+                MsgBox.ShowWrong("sxcs", "sdcfd", "OK", "Cancel");
+                return;
+            }
+            else if (dsfile.Where(p => p.Name.Contains(barcode)).FirstOrDefault() != null)
+            {
+                if (MsgBox.ShowRetest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
+                {
+                    handle("RETEST");
+                }
+                else return;
+            }
+            else
+            {
+                if (MsgBox.ShowTest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
+                {
+                    handle("TEST");
+                }
+                else return;
+            }
+        }
+
         private async void timer1_Tick(object sender, EventArgs e)
         {
             if (isDone)
             {
                 isDone = false;
-                WriteFailLog write = new WriteFailLog();
-                if (!Directory.Exists(LogPath + "\\FAILLOG"))
+
+                if(isFail == true)
                 {
-                    Directory.CreateDirectory(LogPath + "\\FAILLOG");
+                    isFail = false;
+                    WriteFailLog write = new WriteFailLog();
+                    if (!Directory.Exists(LogPath + "\\FAILLOG"))
+                    {
+                        Directory.CreateDirectory(LogPath + "\\FAILLOG");
+                    }
+
+                    write.Read(filePath, LogPath + "\\FAILLOG");
                 }
-                
-                write.Read(filePath, LogPath + "\\FAILLOG");
 
                 // this.Hide();
                 this.Show();
@@ -337,21 +370,21 @@ namespace TR_8001
                 this.Focus();
                 this.Activate();
 
-                await Task.Delay(1000);
-                this.BringToFront();
-                this.Focus();
-                this.Activate();
+                //await Task.Delay(1000);
+                //this.BringToFront();
+                //this.Focus();
+                //this.Activate();
             }
 
         }
         private void OnChanged(object source, FileSystemEventArgs e)
         {
             isDone = true;
-            //if (e.Name.Contains("FAIL"))
-            //{
-            filePath = e.FullPath;
-
-            //}
+            if (e.Name.Contains("FAIL"))
+            {
+                filePath = e.FullPath;
+                isFail = true;
+            }
         }
         private async void waitingResponse_Tick(object sender, EventArgs e)
         {
@@ -371,9 +404,48 @@ namespace TR_8001
                 this.BringToFront();
                 this.Focus();
                 this.Activate();
-                MessageBox.Show("Không nhận đc phản hồi từ mạch điều khiển!","ERROR",MessageBoxButtons.OK);
+                MessageBox.Show("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", MessageBoxButtons.OK);
+            }
+        }
+        public bool checkCam()
+        {
+            if (File.Exists(pathcurrentNow + "\\Barcode.txt"))
+                File.Delete(pathcurrentNow + "\\Barcode.txt");
+            try
+            {
+                pros = Process.Start(pathcurrentNow + "\\Scan_Barcode.exe");
+            }
+            catch (Exception ex)
+            {
+                MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                return false;
             }
 
+            counter1 = 100;
+            waitCam.Start();
+            return true;
+        }
+        private void waitCam_Tick(object sender, EventArgs e)
+        {
+            counter1--;
+            if (File.Exists(pathcurrentNow + "\\Barcode.txt"))
+            {
+                pros.Kill();
+                waitCam.Stop();
+                using (StreamReader str = new StreamReader(pathcurrentNow + "\\Barcode.txt"))
+                    barcode = str.ReadLine();
+
+                checkSN();
+            }
+            else
+            {
+                if (counter == 0)
+                {
+                    pros.Kill();
+                    waitCam.Stop();
+                    MsgBox.ShowException("Kiểm tra kết nối Camera!", "ERROR CAM", "OK", "Cancel");
+                }
+            }
         }
         #endregion
 
@@ -493,7 +565,7 @@ namespace TR_8001
                     groupBox1.Enabled = false;
                     btSend.Enabled = true;
                     txtSend.Enabled = true;
-                   // groupBox3.Enabled = true;
+                    // groupBox3.Enabled = true;
                     statusSend.Visible = true;
                     // status.Text = "Connected with " + cbCom.SelectedItem.ToString();
                     // status.ForeColor = Color.Green;
@@ -517,7 +589,7 @@ namespace TR_8001
                 txtSend.Enabled = false;
                 //groupBox3.Enabled = false;
                 statusSend.Visible = false;
-               // status.Text = "Disconnected";
+                // status.Text = "Disconnected";
                 //status.ForeColor = Color.Red;
             }
         }
@@ -534,18 +606,10 @@ namespace TR_8001
             txtkq.ScrollToCaret();
         }
 
+
+
         #endregion
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            WriteFailLog write = new WriteFailLog();
-            if (!Directory.Exists(LogPath + "\\FAILLOG"))
-            {
-                Directory.CreateDirectory(LogPath + "\\FAILLOG");
-            }
-
-            write.Read(LogPath + "\\FV230200318_FAIL.csv", LogPath + "\\FAILLOG");
-        }
     }
 
 }
