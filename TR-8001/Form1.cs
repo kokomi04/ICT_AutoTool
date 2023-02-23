@@ -21,17 +21,29 @@ namespace TR_8001
     {
         DirectoryInfo Folder;
         FileInfo[] dsfile;
+
+        Process pros;
+
+        string barcode;
+
         string text;
 
         int counter;
         int counter1 = 0;
         int BarcodeLength = 11;
         string LogPath = "";
+
+        string filePath = "";
+        private bool isFail;
+        string pathcurrentNow = Directory.GetCurrentDirectory();
+
         string failPath = "";
+
 
         SerialPort P = new SerialPort();
         string InputData = String.Empty;
         delegate void SetTextCallback(string text);
+        bool isDone = false;
         bool connect = false;
         private bool isDone = false;
         private bool received;
@@ -40,6 +52,7 @@ namespace TR_8001
         public Form1()
         {
             InitializeComponent();
+            //checkBox1.Checked = true;
             this.StartPosition = FormStartPosition.Manual;
             ////////LogPath
             timer1.Enabled = true;
@@ -215,6 +228,10 @@ namespace TR_8001
             {
                 if (textBox1.Text.Length == BarcodeLength)
                 {
+
+                    barcode = textBox1.Text.ToUpper().Trim();
+                    checkSN();
+
                     text = textBox1.Text.ToUpper().Trim();
                     Folder.Refresh();
                     dsfile = Folder.GetFiles();
@@ -243,8 +260,8 @@ namespace TR_8001
                     }
                     //}
 
-                }
 
+                }
             }
         }
 
@@ -327,13 +344,22 @@ namespace TR_8001
                 label4.Visible = false;
                 btnUseCam.Visible = true;
                 btnUseCam.Text = "ENTER";
+
+                this.AcceptButton = btnUseCam;
+            }
+            else
+
             }
             else 
+
             {
                 textBox1.Visible = true;
                 label1.Visible = true;
                 label4.Visible = true;
                 btnUseCam.Visible = false;
+
+                this.AcceptButton = null;
+
             }
         }
         private void btnUseCam_Click(object sender, EventArgs e)
@@ -341,7 +367,11 @@ namespace TR_8001
             checkCam();
         }
 
+
+        public void checkSN()
+
         private void checkSN()
+
         {
             Folder.Refresh();
             dsfile = Folder.GetFiles();
@@ -376,6 +406,19 @@ namespace TR_8001
             {
                 isDone = false;
 
+
+                if(isFail == true)
+                {
+                    isFail = false;
+                    WriteFailLog write = new WriteFailLog();
+                    if (!Directory.Exists(LogPath + "\\FAILLOG"))
+                    {
+                        Directory.CreateDirectory(LogPath + "\\FAILLOG");
+                    }
+
+                    write.Read(filePath, LogPath + "\\FAILLOG");
+                }
+
                 // this.Hide();
                 this.Show();
                 await Task.Delay(3000);
@@ -383,6 +426,12 @@ namespace TR_8001
                 this.BringToFront();
                 this.Focus();
                 this.Activate();
+
+
+                //await Task.Delay(1000);
+                //this.BringToFront();
+                //this.Focus();
+                //this.Activate();
 
                 await Task.Delay(1000);
                 this.BringToFront();
@@ -401,6 +450,11 @@ namespace TR_8001
             isDone = true;
             if (e.Name.Contains("FAIL"))
             {
+
+                filePath = e.FullPath;
+                isFail = true;
+            }
+
                 isFail = true;
                 failPath = e.FullPath;
             }
@@ -458,7 +512,11 @@ namespace TR_8001
                 this.BringToFront();
                 this.Focus();
                 this.Activate();
+
+                MessageBox.Show("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", MessageBoxButtons.OK);
+
                 MsgBox.ShowException("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", "OK", "Cancel");
+
             }
         }
         public bool checkCam()
@@ -468,6 +526,12 @@ namespace TR_8001
             try
             {
                 pros = Process.Start(pathcurrentNow + "\\Scan_Barcode.exe");
+
+            }
+            catch (Exception ex)
+            {
+                MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                return false;
             }
             catch (Exception ex)
             {
@@ -489,6 +553,21 @@ namespace TR_8001
                 StreamReader str = new StreamReader(pathcurrentNow + "\\Barcode.txt");
                 barcode = str.ReadLine();
 
+
+            counter1 = 100;
+            waitCam.Start();
+            return true;
+        }
+        private void waitCam_Tick(object sender, EventArgs e)
+        {
+            counter1--;
+            if (File.Exists(pathcurrentNow + "\\Barcode.txt"))
+            {
+                pros.Kill();
+                waitCam.Stop();
+                using (StreamReader str = new StreamReader(pathcurrentNow + "\\Barcode.txt"))
+                    barcode = str.ReadLine();
+
                 checkSN();
             }
             else
@@ -496,6 +575,10 @@ namespace TR_8001
                 if (counter == 0)
                 {
                     pros.Kill();
+
+                    waitCam.Stop();
+                    MsgBox.ShowException("Kiểm tra kết nối Camera!", "ERROR CAM", "OK", "Cancel");
+
                     MsgBox.ShowException("Kiểm tra kết nối Camera!", "ERROR CAM", "OK", "Cancel");
                     waitCam.Stop();
                 }

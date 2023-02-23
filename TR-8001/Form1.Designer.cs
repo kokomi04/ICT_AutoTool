@@ -40,6 +40,7 @@ namespace TR_8001
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.btnUseCam = new System.Windows.Forms.Button();
             this.lbwarning = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
@@ -65,6 +66,7 @@ namespace TR_8001
             this.btXoa = new System.Windows.Forms.Button();
             this.btKetNoi = new System.Windows.Forms.Button();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.textBox2 = new System.Windows.Forms.TextBox();
@@ -72,7 +74,11 @@ namespace TR_8001
             this.label5 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.waitingResponse = new System.Windows.Forms.Timer(this.components);
+
+            this.waitCam = new System.Windows.Forms.Timer(this.components);
+
             this.writeFailLog = new System.Windows.Forms.Timer(this.components);
+
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -172,6 +178,7 @@ namespace TR_8001
             this.panel1.AutoSize = true;
             this.panel1.BackColor = System.Drawing.Color.DarkSeaGreen;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel1.Controls.Add(this.btnUseCam);
             this.panel1.Controls.Add(this.lbwarning);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.textBox1);
@@ -180,6 +187,20 @@ namespace TR_8001
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(463, 257);
             this.panel1.TabIndex = 8;
+            // 
+            // btnUseCam
+            // 
+            this.btnUseCam.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(128)))));
+            this.btnUseCam.Font = new System.Drawing.Font("Microsoft Sans Serif", 50F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUseCam.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.btnUseCam.Location = new System.Drawing.Point(14, 27);
+            this.btnUseCam.Name = "btnUseCam";
+            this.btnUseCam.Size = new System.Drawing.Size(430, 199);
+            this.btnUseCam.TabIndex = 11;
+            this.btnUseCam.Text = "button1";
+            this.btnUseCam.UseVisualStyleBackColor = false;
+            this.btnUseCam.Visible = false;
+            this.btnUseCam.Click += new System.EventHandler(this.btnUseCam_Click);
             // 
             // lbwarning
             // 
@@ -489,6 +510,7 @@ namespace TR_8001
             // 
             this.panel2.BackColor = System.Drawing.Color.YellowGreen;
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel2.Controls.Add(this.checkBox1);
             this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.button2);
             this.panel2.Controls.Add(this.textBox2);
@@ -499,6 +521,18 @@ namespace TR_8001
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(468, 81);
             this.panel2.TabIndex = 12;
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.checkBox1.Location = new System.Drawing.Point(298, 44);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(89, 19);
+            this.checkBox1.TabIndex = 10;
+            this.checkBox1.Text = "Use Camera";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // label2
             // 
@@ -561,9 +595,16 @@ namespace TR_8001
             // 
             this.waitingResponse.Tick += new System.EventHandler(this.waitingResponse_Tick);
             // 
+
+            // waitCam
+            // 
+            this.waitCam.Interval = 7000;
+            this.waitCam.Tick += new System.EventHandler(this.waitCam_Tick);
+
             // writeFailLog
             // 
             this.writeFailLog.Tick += new System.EventHandler(this.writeFailLog_Tick);
+
             // 
             // Form1
             // 
@@ -642,7 +683,13 @@ namespace TR_8001
         private System.Windows.Forms.Button btXoa;
         private System.Windows.Forms.Label lbwarning;
         private System.Windows.Forms.Timer waitingResponse;
+
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Button btnUseCam;
+        private System.Windows.Forms.Timer waitCam;
+
         private System.Windows.Forms.Timer writeFailLog;
+
     }
 }
 
