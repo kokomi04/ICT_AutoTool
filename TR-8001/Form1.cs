@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Ports;
@@ -23,6 +24,7 @@ namespace TR_8001
         string text;
 
         int counter;
+        int counter1 = 0;
         int BarcodeLength = 11;
         string LogPath = "";
         string failPath = "";
@@ -263,7 +265,7 @@ namespace TR_8001
             AutoControl.BringToFront(handle);
             await Task.Delay(50);
             AutoControl.SendClickOnPosition(handle, 300, 120, EMouseKey.DOUBLE_LEFT);
-            SendKeys.SendWait(text);
+            SendKeys.SendWait(barcode);
             //AutoControl.SendKeyPress(KeyCode.F6);
             await Task.Delay(2000);
             //  AutoControl.SendKeyPress(KeyCode.F5);
@@ -315,6 +317,59 @@ namespace TR_8001
             INIFile inif = new INIFile(Directory.GetCurrentDirectory() + "\\config.ini");
             inif.Write("CONFIG", "BarcodeLength", BarcodeLength.ToString());
         }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (checkBox1.Checked)
+            {
+                textBox1.Visible = false;
+                label1.Visible = false;
+                label4.Visible = false;
+                btnUseCam.Visible = true;
+                btnUseCam.Text = "ENTER";
+            }
+            else 
+            {
+                textBox1.Visible = true;
+                label1.Visible = true;
+                label4.Visible = true;
+                btnUseCam.Visible = false;
+            }
+        }
+        private void btnUseCam_Click(object sender, EventArgs e)
+        {
+            checkCam();
+        }
+
+        private void checkSN()
+        {
+            Folder.Refresh();
+            dsfile = Folder.GetFiles();
+
+            if (!barcode.Contains("FV"))
+            {
+                textBox1.Text = "";
+                MsgBox.ShowWrong("sxcs", "sdcfd", "OK", "Cancel");
+                return;
+            }
+            else if (dsfile.Where(p => p.Name.Contains(barcode)).FirstOrDefault() != null)
+            {
+                if (MsgBox.ShowRetest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
+                {
+                    handle("RETEST");
+                }
+                else return;
+            }
+            else
+            {
+                if (MsgBox.ShowTest("sxcs", "sdcfd", "OK", "Cancel") == DialogResult.Yes)
+                {
+                    handle("TEST");
+                }
+                else return;
+            }
+        }
+
         private async void timer1_Tick(object sender, EventArgs e)
         {
             if (isDone)
@@ -405,13 +460,52 @@ namespace TR_8001
                 this.Activate();
                 MsgBox.ShowException("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", "OK", "Cancel");
             }
-
         }
-        #endregion
+        public bool checkCam()
+        {
+            if (File.Exists(pathcurrentNow + "\\Barcode.txt"))
+                File.Delete(pathcurrentNow + "\\Barcode.txt");
+            try
+            {
+                pros = Process.Start(pathcurrentNow + "\\Scan_Barcode.exe");
+            }
+            catch (Exception ex)
+            {
+                MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                return false;
+            }
+            
+            counter1 = 100;
+            waitCam.Start();
+            return true;
+        }
+        private void waitCam_Tick(object sender, EventArgs e)
+        {
+            counter1--;
+            if (File.Exists(pathcurrentNow + "\\Barcode.txt"))
+            {
+                pros.Kill();
+                waitCam.Stop();
+                StreamReader str = new StreamReader(pathcurrentNow + "\\Barcode.txt");
+                barcode = str.ReadLine();
+
+                checkSN();
+            }
+            else
+            {
+                if (counter == 0)
+                {
+                    pros.Kill();
+                    MsgBox.ShowException("Kiểm tra kết nối Camera!", "ERROR CAM", "OK", "Cancel");
+                    waitCam.Stop();
+                }
+            }
+        }
+            #endregion
 
 
-        #region Config
-        private void cbCom_SelectedIndexChanged(object sender, EventArgs e)
+            #region Config
+            private void cbCom_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (P.IsOpen)
             {
@@ -565,6 +659,8 @@ namespace TR_8001
             txtkq.SelectionStart = txtkq.Text.Length;
             txtkq.ScrollToCaret();
         }
+
+
 
         #endregion
 
