@@ -23,10 +23,12 @@ namespace TR_8001
         public static DialogResult ShowTest(string text, string caption, string btnOk, string btnCancel)
         {
             msgBox = new MsgBox();
+            msgBox.StartPosition = FormStartPosition.CenterParent;
             msgBox.Text = "ICT TEST";
             // msgBox.label1.Text = text;
             msgBox.button1.Text = btnOk;
             msgBox.button2.Text = btnCancel;
+            msgBox.button3.Visible = false;
             msgBox.splitContainer1.Panel1.BackColor = Color.Chartreuse;
             msgBox.label1.Text = "TEST";
 
@@ -38,10 +40,12 @@ namespace TR_8001
         public static DialogResult ShowRetest(string text, string caption, string btnOk, string btnCancel)
         {
             msgBox = new MsgBox();
+            msgBox.StartPosition = FormStartPosition.CenterParent;
             msgBox.Text = "ICT TEST";
             // msgBox.label1.Text = text;
             msgBox.button1.Text = btnOk;
             msgBox.button2.Text = btnCancel;
+            msgBox.button3.Visible = false;
             msgBox.splitContainer1.Panel1.BackColor = Color.Gold;
             msgBox.label1.Text = "RETEST";
             msgBox.label1.Location = new Point(30, 63);
@@ -52,11 +56,13 @@ namespace TR_8001
         public static DialogResult ShowWrong(string text, string caption, string btnOk, string btnCancel)
         {
             msgBox = new MsgBox();
+            msgBox.StartPosition = FormStartPosition.CenterParent;
             msgBox.Text = "ICT TEST";
             // msgBox.label1.Text = text;
             // msgBox.button1.Enabled = false;
             msgBox.button1.Text = btnOk;
             msgBox.button2.Text = btnCancel;
+            msgBox.button3.Visible = false;
             msgBox.splitContainer1.Panel1.BackColor = Color.Red;
             msgBox.label1.Text = "ERROR";
             msgBox.label1.Location = new Point(55, 63);
@@ -67,6 +73,7 @@ namespace TR_8001
         public static DialogResult ShowException(string text, string caption, string btnOk, string btnCancel)
         {
             msgBox = new MsgBox();
+            msgBox.StartPosition = FormStartPosition.CenterParent;
             msgBox.Text = caption;
             // msgBox.label1.Text = text;
             // msgBox.button1.Enabled = false;
@@ -76,6 +83,7 @@ namespace TR_8001
             msgBox.label1.Text = "";
             msgBox.label1.Location = new Point(55, 63);
             msgBox.button3.Text = text;
+            msgBox.button1.Select();
             msgBox.ShowDialog();
             return result;
         }

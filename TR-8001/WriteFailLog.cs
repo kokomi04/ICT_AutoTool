@@ -43,25 +43,34 @@ namespace TR_8001
 
                     if (items1[i].Contains("BarCode"))
                     {
-                        newline = newline + "BarCode , " + items2[i] + "\r\n";
+                        newline += "BarCode , " + items2[i] + "\r\n";
                         nameFile = items2[i];
                     }
                 }
-                newline = newline + "Result , FAIL\r\n\r\n";
-
-                newline = newline + lines[5];
+                newline += "Result , FAIL\r\n";
 
                 string[] items5 = lines[5].Split(',');
-                for (i = 0; i < lines[5].Split(',').Count()-1; i++)
+                for (i = 0; i < lines[5].Split(',').Count(); i++)
                 {
                     if (items5[i].Contains("Result"))
                     {
                         for (j = 6; j < lines.Count()-1; j++)
                         {
-                            if (Convert.ToInt32(lines[j].Split(',')[i]) == 1)
+
+                            if (lines[j].Contains(","))
+                            {
+                                if (Convert.ToInt32(lines[j].Split(',')[i]) == 1)
+                                {
+                                    if(!newline.Contains("PartName"))
+                                        newline += "\n" + lines[5];
+                                    newline += lines[j] + "";
+                                }
+                            }
+                            else
                             {
                                 newline += lines[j] + "";
                             }
+
                         }
                     }
                 }
@@ -82,7 +91,6 @@ namespace TR_8001
                     MsgBox.ShowException(ex.Message, "Error", "OK", "Cancel");
                     
                 }
-
             }
         }
     }
