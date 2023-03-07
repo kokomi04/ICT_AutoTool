@@ -1,4 +1,4 @@
-﻿using Gma.System.MouseKeyHook;
+using Gma.System.MouseKeyHook;
 using KAutoHelper;
 using System;
 using System.Collections.Generic;

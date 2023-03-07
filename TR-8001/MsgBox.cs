@@ -33,6 +33,7 @@ namespace TR_8001
             msgBox.label1.Text = "TEST";
 
             msgBox.label1.Location = new Point(80, 63);
+            msgBox.button3.Visible = false;
             msgBox.ShowDialog();
             return result;
         }
@@ -49,6 +50,7 @@ namespace TR_8001
             msgBox.splitContainer1.Panel1.BackColor = Color.Gold;
             msgBox.label1.Text = "RETEST";
             msgBox.label1.Location = new Point(30, 63);
+            msgBox.button3.Visible = false;
             msgBox.ShowDialog();
             return result;
         }
@@ -66,6 +68,7 @@ namespace TR_8001
             msgBox.splitContainer1.Panel1.BackColor = Color.Red;
             msgBox.label1.Text = "ERROR";
             msgBox.label1.Location = new Point(55, 63);
+            msgBox.button3.Visible = false;
             msgBox.ShowDialog();
             return result;
         }
