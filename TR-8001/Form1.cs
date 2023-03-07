@@ -53,6 +53,7 @@ namespace TR_8001
             this.StartPosition = FormStartPosition.Manual;
             checkBox1.Checked = bool.Parse(RegistryHelper.getRegistryKey("isUseCam", "false"));
             checkBox2.Checked = bool.Parse(RegistryHelper.getRegistryKey("isSaveFailLog", "true"));
+            textBox4.Text = RegistryHelper.getRegistryKey("ScanPrg", "Scan_Barcode.exe");
             timer1.Enabled = true;
             BarcodeLength = Int32.Parse(RegistryHelper.getRegistryKey("BarcodeLength", "11"));
             numericUpDown1.Value = Decimal.Parse(RegistryHelper.getRegistryKey("BarcodeLength", "11"));
@@ -119,7 +120,7 @@ namespace TR_8001
                 {
                     MessageBox.Show("Can't connect COM Port.", "Retry", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     panel1.BackColor = Color.Brown;
-                    textBox1.Visible = label1.Visible = label4.Visible = false;
+                    textBox1.Visible = label1.Visible = label4.Visible = btnUseCam.Visible = false;
                     lbwarning.Visible = true;
                     lbwarning.Text = "ERROR COM PORT";
                 }
@@ -152,50 +153,57 @@ namespace TR_8001
         {
             // Create a new FileSystemWatcher and set its properties.
             FileSystemWatcher watcher = new FileSystemWatcher();
-            switch (comboBox1.SelectedItem)
+            try
             {
-                case "953073T00":
-                    {
-                        watcher.Path = LogPath[0];
-                    }
-                    break;
-                case "953107T00":
-                    {
-                        watcher.Path = LogPath[1];
-                    }
-                    break;
-                case "J21O002T00":
-                    {
-                        watcher.Path = LogPath[2];
-                    }
-                    break;
-            }
-            /* Watch for changes in LastAccess and LastWrite times, and
+                switch (comboBox1.SelectedItem)
+                {
+                    case "953073T00":
+                        {
+                            watcher.Path = LogPath[0];
+                        }
+                        break;
+                    case "953107T00":
+                        {
+                            watcher.Path = LogPath[1];
+                        }
+                        break;
+                    case "J21O002T00":
+                        {
+                            watcher.Path = LogPath[2];
+                        }
+                        break;
+                }
+                /* Watch for changes in LastAccess and LastWrite times, and
                the renaming of files or directories. */
-            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
-               | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            // Only watch text files.
-            watcher.Filter = "*.csv";
+                watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
+                   | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                // Only watch text files.
+                watcher.Filter = "*.csv";
 
-            // Add event handlers.
-            watcher.Changed += new FileSystemEventHandler(OnChanged);
-            watcher.Created += new FileSystemEventHandler(OnChanged);
-            // watcher.Deleted += new FileSystemEventHandler(OnChanged);
+                // Add event handlers.
+                watcher.Changed += new FileSystemEventHandler(OnChanged);
+                watcher.Created += new FileSystemEventHandler(OnChanged);
+                // watcher.Deleted += new FileSystemEventHandler(OnChanged);
 
-            // Begin watching.
-            watcher.EnableRaisingEvents = true;
+                // Begin watching.
+                watcher.EnableRaisingEvents = true;
+            }
+            catch (Exception ex)
+            {
+                MsgBox.ShowException(ex.Message, "Warning", "", "");
+            }
         }
         public void LoadLogPath()
         {
-            LogPath[0] = RegistryHelper.getRegistryKey("LogPath0", "E:\\ICT\\ICT_AutoTool\\LOG\\953073");
-            LogPath[1] = RegistryHelper.getRegistryKey("LogPath1", "E:\\ICT\\ICT_AutoTool\\LOG\\953107");
-            LogPath[2] = RegistryHelper.getRegistryKey("LogPath2", "E:\\ICT\\ICT_AutoTool\\LOG\\J21");
+            LogPath[0] = RegistryHelper.getRegistryKey("LogPath0", "");
+            LogPath[1] = RegistryHelper.getRegistryKey("LogPath1", "");
+            LogPath[2] = RegistryHelper.getRegistryKey("LogPath2", "");
 
             for (int i = 0; i < LogPath.Length; i++)
             {
-                if (LogPath[i] == "" || LogPath[i] == null)
+                if (LogPath[i] == "" || String.IsNullOrEmpty(LogPath[i]))
                 {
-                    MsgBox.ShowException("Chọn lại LogPath", "Warning", "", "");
+                    MsgBox.ShowException($"Chọn lại LogPath {i}", "Warning", "", "");
                     FolderBrowserDialog f1 = new FolderBrowserDialog();
                     if (f1.ShowDialog() == DialogResult.OK)
                     {
@@ -294,19 +302,19 @@ namespace TR_8001
                     case "953073T00":
                         {
                             LogPath[0] = textBox2.Text = f1.SelectedPath;
-                            RegistryHelper.setRegistryKey("LogPath0", LogPath[0]);
+                            RegistryHelper.setRegistryKey("LogPath0", f1.SelectedPath);
                         }
                         break;
                     case "953107T00":
                         {
                             LogPath[1] = textBox2.Text = f1.SelectedPath;
-                            RegistryHelper.setRegistryKey("LogPath1", LogPath[1]);
+                            RegistryHelper.setRegistryKey("LogPath1", f1.SelectedPath);
                         }
                         break;
                     case "J21O002T00":
                         {
                             LogPath[2] = textBox2.Text = f1.SelectedPath;
-                            RegistryHelper.setRegistryKey("LogPath2", LogPath[2]);
+                            RegistryHelper.setRegistryKey("LogPath2", f1.SelectedPath);
                         }
                         break;
                 }
@@ -399,7 +407,7 @@ namespace TR_8001
             }
             catch (Exception ex)
             {
-                MsgBox.ShowException(ex.Message, "ERROR", "OK", "Cancel");
+                MsgBox.ShowException("Không mở được phần mềm Scan Barcode", "ERROR", "OK", "Cancel");
                 return false;
             }
 
@@ -615,7 +623,7 @@ namespace TR_8001
                 this.BringToFront();
                 this.Focus();
                 this.Activate();
-                MessageBox.Show("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", MessageBoxButtons.OK);
+                MsgBox.ShowException("Không nhận đc phản hồi từ mạch điều khiển!", "ERROR", "OK", "Cancel");
             }
         }
         private void waitCam_Tick(object sender, EventArgs e)
@@ -669,6 +677,13 @@ namespace TR_8001
                 SNcheck = textBox3.Text.Trim().Replace("*", "");
                 FillSNcheck();
                 RegistryHelper.setRegistryKey("SNcheck", SNcheck);
+            }
+        }
+        private void textBox4_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                RegistryHelper.setRegistryKey("ScanPrg", textBox4.Text);
             }
         }
         #endregion
@@ -837,5 +852,7 @@ namespace TR_8001
             }
         }
         #endregion
+
+        
     }
 }

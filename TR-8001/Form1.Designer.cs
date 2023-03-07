@@ -605,7 +605,7 @@ namespace TR_8001
             this.textBox4.Name = "textBox4";
             this.textBox4.Size = new System.Drawing.Size(126, 21);
             this.textBox4.TabIndex = 15;
-            this.textBox4.Text = "Scan_Barcode.exe";
+            this.textBox4.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox4_KeyDown);
             // 
             // textBox3
             // 

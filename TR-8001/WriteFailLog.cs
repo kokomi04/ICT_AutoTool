@@ -48,6 +48,7 @@ namespace TR_8001
                     }
                 }
                 newline += "Result , FAIL\r\n";
+                newline += $"Time , {DateTime.Now.ToString("hh:mm:ss")} , {DateTime.Now.ToString("dd/MM/yyyy")}";
 
                 string[] items5 = lines[5].Split(',');
                 for (i = 0; i < lines[5].Split(',').Count(); i++)
