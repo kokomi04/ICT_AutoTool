@@ -79,6 +79,7 @@
     <Compile Include="MsgBox.Designer.cs">
       <DependentUpon>MsgBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="RegistryHelper.cs" />
     <Compile Include="SendKeysSupported.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -132,4 +133,8 @@
     <Content Include="R - Copy.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
+if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"</PreBuildEvent>
+  </PropertyGroup>
 </Project>
